@@ -1,0 +1,10 @@
+diff --git a/internal/api/ui/login/static/resources/generate.go b/internal/api/ui/login/static/resources/generate.go
+index cc83751..1fdb75c 100644
+--- a/internal/api/ui/login/static/resources/generate.go
++++ b/internal/api/ui/login/static/resources/generate.go
+@@ -3,4 +3,4 @@ package resources
+ // TODO whitelabeling go:generate pnpm sass themes/scss/zitadel-alternative.scss themes/zitadel/css/zitadel.css
+ // scss
+ 
+-//go:generate pnpm sass internal/api/ui/login/static/resources/themes/scss/zitadel.scss internal/api/ui/login/static/resources/themes/zitadel/css/zitadel.css
++//go:generate sass themes/scss/zitadel.scss themes/zitadel/css/zitadel.css

@@ -9,6 +9,8 @@
   buf,
   cacert,
   grpc-gateway,
+  protoc-gen-connect-go,
+  protoc-gen-es,
   protoc-gen-go,
   protoc-gen-go-grpc,
   protoc-gen-validate,
@@ -18,14 +20,22 @@
 }:
 
 let
-  version = "2.71.7";
+  version = "4.7.5";
   zitadelRepo = fetchFromGitHub {
     owner = "zitadel";
     repo = "zitadel";
     rev = "v${version}";
-    hash = "sha256-0ZOiwJ/ehDBkbd7iTTyVJzLj6Etph5/oxrDrck30ZL8=";
+    hash = "sha256-JkWKIQGLOa6/svw2JNo7ikTRKZ4TweD4r2sQwkbqwoc=";
+
+    leaveDotGit = true;
+    postFetch = ''
+      cd "$out"
+      git rev-parse HEAD > $out/COMMIT
+      TZ=utc date -d @$(git log -1 --format=%ct) --iso-8601=s > $out/DATE
+      find "$out" -name .git -print0 | xargs -0 rm -rf
+    '';
   };
-  goModulesHash = "sha256-iZCjHSpQ7Gy41Dd4svRLbyEh1N8VE8U0uCOlN9rfJQU=";
+  goModulesHash = "sha256-huSMpQ6vIBRmMBz8PIwSzZPxO6okh773P4vxedj386Q=";
 
   buildZitadelProtocGen =
     name:
@@ -158,6 +168,7 @@ let
     nativeBuildInputs = [
       grpc-gateway
       protoc-gen-authoption
+      protoc-gen-connect-go
       protoc-gen-go
       protoc-gen-go-grpc
       protoc-gen-validate
@@ -172,6 +183,10 @@ buildGoModule rec {
 
   src = zitadelRepo;
 
+  patches = [
+    ./generate-resources-using-sass-directly.patch
+  ];
+
   nativeBuildInputs = [
     sass
     statik
@@ -181,9 +196,14 @@ buildGoModule rec {
   vendorHash = goModulesHash;
   ldflags = [ "-X 'github.com/zitadel/zitadel/cmd/build.version=${version}'" ];
 
+  # Exclude the login app, which contains separate go acceptance tests
+  excludedPackages = [ "apps/login" ];
+
   # Adapted from Makefile in repo, with dependency fetching and protobuf codegen
   # bits removed
   preBuild = ''
+    # ldflags based on metadata from git and source
+    ldflags+=" -X github.com/zitadel/zitadel/cmd/build.commit=$(cat COMMIT) -X github.com/zitadel/zitadel/cmd/build.date=$(cat DATE)"
     mkdir -p pkg/grpc
     cp -r ${protobufGenerated}/grpc/github.com/zitadel/zitadel/pkg/grpc/* pkg/grpc
     mkdir -p openapi/v2/zitadel
