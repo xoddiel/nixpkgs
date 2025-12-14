@@ -28,7 +28,6 @@ let
     workDir = "console";
     bufArgs = "../proto --include-imports --include-wkt";
     outputPath = "src/app/proto";
-    hash = "sha256-UzmwUUYg0my3noAQNtlUEBQ+K6GVnBSkWj4CzoaoLKw=";
   };
 in
 stdenv.mkDerivation {
